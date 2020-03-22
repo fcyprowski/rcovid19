@@ -2,16 +2,31 @@
 #' @importFrom assertthat is.date
 #' @importFrom readr read_csv
 #' @importFrom purrr safely
+#' @importFrom purrr when
 enrich = function(raw_data, date) {
   names(raw_data) = names(raw_data) %>%
     stringr::str_replace("\\/| ", "_") %>%
     tolower()
-  raw_data$date = date
+  raw_data$date = empty_date()
+  if (nrow(raw_data) > 0) {
+    raw_data$date = date
+  }
   return(raw_data)
 }
+read_or_init_empty_table = function(filepath, date, verbose) {
+  safely(
+    ~read_csv(.x, progress = verbose),
+    otherwise = init_empty_daily_report(date)
+  )(path)$result
+}
+build_filepath = function(date, repository) {
+  date = format(date, "%m-%d-%Y")
+  file = paste0(date, ".csv")
+  paste(repository, file, sep = "/")
+}
 get_daily_report = function(date,
-                            repository = COVID19_repository_dayli,
-                            verbose = TRUE) {
+                            verbose = FALSE,
+                            repository = COVID19_repository_dayli) {
   assertthat::assert_that(
     is.date(as.Date(date))
   )
@@ -19,7 +34,11 @@ get_daily_report = function(date,
   file = paste0(date, ".csv")
   path = paste(repository, file, sep = "/")
   if (verbose) message(path)
-  safely(read_csv)(path)$result %>%
+  path %>%
+    read_or_init_empty_table(
+      date = date,
+      verbose = verbose
+    ) %>%
     enrich(date)
 }
 
@@ -27,6 +46,7 @@ get_daily_report = function(date,
 #'
 #' @param start_date Date object YYYY-MM-DD (default to a date before the current date)
 #' @param end_date Date object YYYY-MM-DD (default to a date before the current date)
+#' @param verbose should you print file path and readr message? Default to FALSE
 #' @param ... additional args. See below:
 #' @details
 #' * repository: default to the COVID19_repository_daily global variable
@@ -41,11 +61,13 @@ get_daily_report = function(date,
 #' covid_cases = rcovid19::get_reports(Sys.Date() - 1, Sys.Date() - 30)
 get_reports = function(start_date = Sys.Date() - 1,
                        end_date = Sys.Date() - 1,
-                       ...) {
+                       verbose = FALSE,
+                       repository = COVID19_repository_dayli) {
   assertthat::assert_that(
     is.date(as.Date(start_date)),
-    is.date(as.Date(end_date))
+    is.date(as.Date(end_date)),
+    end_date >= start_date
   )
-  seq(start_date, end_date, by = 1) %>%
-    purrr::map_dfr(get_daily_report)
+  date_seq(start_date, end_date) %>%
+    purrr::map_dfr(~get_daily_report(.))
 }
