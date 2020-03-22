@@ -1,7 +1,7 @@
 Package: rcovid19
 Type: Package
 Title: Quick data dump for the COVID-19 data
-Version: 0.1.0
+Version: 0.1.01
 Author: person(given = "Filip",
            family = "Cyprowski",
            role = c("aut", "cre"),

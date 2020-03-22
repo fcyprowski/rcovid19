@@ -5,14 +5,12 @@
 \title{Get the data about COVID-19 from the CSSE repository}
 \usage{
 get_reports(start_date = Sys.Date() - 1, end_date = Sys.Date() - 1,
-  verbose = FALSE, repository = COVID19_repository_dayli)
+  ...)
 }
 \arguments{
 \item{start_date}{Date object YYYY-MM-DD (default to a date before the current date)}
 
 \item{end_date}{Date object YYYY-MM-DD (default to a date before the current date)}
-
-\item{verbose}{should you print file path and readr message? Default to FALSE}
 
 \item{...}{additional args. See below:}
 }
@@ -26,7 +24,7 @@ Get the data about COVID-19 from the CSSE repository
 \details{
 \itemize{
 \item repository: default to the COVID19_repository_daily global variable
-\item verbose: should it print out some messages. Default to TRUE
+\item verbose: should it print out some messages (like the github filepath and readr progress)? Default to TRUE
 }
 }
 \examples{
