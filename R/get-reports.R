@@ -70,7 +70,6 @@ rename_for_some_standards = function(raw_data) {
 #' covid_cases = rcovid19::get_reports(Sys.Date() - 1, Sys.Date() - 30)
 get_reports = function(start_date = Sys.Date() - 1,
                        end_date = Sys.Date() - 1,
-                       verbose = FALSE,
                        ...) {
   assertthat::assert_that(
     is.date(as.Date(start_date)),
