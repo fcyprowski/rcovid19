@@ -20,3 +20,13 @@ init_empty_daily_report = function(date) {
   )
   dplyr::as_tibble(empty_report)
 }
+# these are names that will be created after the processing of the raw data
+expected_names = c("province_state",
+                   "country_region",
+                   "last_update",
+                   "confirmed",
+                   "deaths",
+                   "recovered",
+                   'latitude',
+                   'longitude',
+                   "date")
