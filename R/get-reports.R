@@ -1,12 +1,11 @@
 #' @importFrom assertthat assert_that
 #' @importFrom assertthat is.date
+#' @importFrom assertthat is.flag
+#' @importFrom assertthat is.string
 #' @importFrom readr read_csv
 #' @importFrom purrr safely
 #' @importFrom purrr when
 enrich = function(raw_data, date) {
-  names(raw_data) = names(raw_data) %>%
-    stringr::str_replace("\\/| ", "_") %>%
-    tolower()
   raw_data$date = empty_date()
   if (nrow(raw_data) > 0) {
     raw_data$date = date
@@ -15,24 +14,25 @@ enrich = function(raw_data, date) {
 }
 read_or_init_empty_table = function(filepath, date, verbose) {
   safely(
-    ~read_csv(.x, progress = verbose),
-    otherwise = init_empty_daily_report(date)
+    ~read_csv(filepath, progress = verbose),
+    otherwise = init_empty_daily_report(date),
+    quiet = verbose
   )(path)$result
 }
 build_filepath = function(date, repository) {
-  date = format(date, "%m-%d-%Y")
-  file = paste0(date, ".csv")
+  file_date = format(date, "%m-%d-%Y")
+  file = paste0(file_date, ".csv")
   paste(repository, file, sep = "/")
 }
 get_daily_report = function(date,
                             verbose = FALSE,
                             repository = COVID19_repository_dayli) {
   assertthat::assert_that(
-    is.date(as.Date(date))
+    is.date(as.Date(date)),
+    is.flag(verbose),
+    is.string(repository)
   )
-  date = format(date, "%m-%d-%Y")
-  file = paste0(date, ".csv")
-  path = paste(repository, file, sep = "/")
+  path = build_filepath(date, repository)
   if (verbose) message(path)
   path %>%
     read_or_init_empty_table(
@@ -41,7 +41,12 @@ get_daily_report = function(date,
     ) %>%
     enrich(date)
 }
-
+rename_for_some_standards = function(raw_data) {
+  names(raw_data) = names(raw_data) %>%
+    stringr::str_replace("\\/| ", "_") %>%
+    tolower()
+  return(raw_data)
+}
 #' @title Get the data about COVID-19 from the CSSE repository
 #'
 #' @param start_date Date object YYYY-MM-DD (default to a date before the current date)
@@ -67,5 +72,6 @@ get_reports = function(start_date = Sys.Date() - 1,
     end_date >= start_date
   )
   date_seq(start_date, end_date) %>%
-    purrr::map_dfr(~get_daily_report(., ...))
+    purrr::map_dfr(~get_daily_report(., ...)) %>%
+    rename_for_some_standards()
 }
