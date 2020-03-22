@@ -6,9 +6,14 @@
 #' @importFrom purrr safely
 #' @importFrom purrr when
 enrich = function(raw_data, date) {
-  raw_data$date = empty_date()
+  assert_that(
+    is.date(as.Date(date)),
+    is.data.frame(raw_data)
+  )
   if (nrow(raw_data) > 0) {
     raw_data$date = date
+  } else {
+    raw_data$date = empty_date()
   }
   return(raw_data)
 }
@@ -65,6 +70,7 @@ rename_for_some_standards = function(raw_data) {
 #' covid_cases = rcovid19::get_reports(Sys.Date() - 1, Sys.Date() - 30)
 get_reports = function(start_date = Sys.Date() - 1,
                        end_date = Sys.Date() - 1,
+                       verbose = FALSE,
                        ...) {
   assertthat::assert_that(
     is.date(as.Date(start_date)),
@@ -72,6 +78,6 @@ get_reports = function(start_date = Sys.Date() - 1,
     end_date >= start_date
   )
   date_seq(start_date, end_date) %>%
-    purrr::map_dfr(~get_daily_report(., ...)) %>%
+    purrr::map_dfr(~get_daily_report(...)) %>%
     rename_for_some_standards()
 }
