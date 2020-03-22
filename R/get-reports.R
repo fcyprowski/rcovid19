@@ -46,11 +46,10 @@ get_daily_report = function(date,
 #'
 #' @param start_date Date object YYYY-MM-DD (default to a date before the current date)
 #' @param end_date Date object YYYY-MM-DD (default to a date before the current date)
-#' @param verbose should you print file path and readr message? Default to FALSE
 #' @param ... additional args. See below:
 #' @details
 #' * repository: default to the COVID19_repository_daily global variable
-#' * verbose: should it print out some messages. Default to TRUE
+#' * verbose: should it print out some messages (like the github filepath and readr progress)? Default to TRUE
 #' @md
 #'
 #' @return data.frame. It should have the same structure as in here:
@@ -61,13 +60,12 @@ get_daily_report = function(date,
 #' covid_cases = rcovid19::get_reports(Sys.Date() - 1, Sys.Date() - 30)
 get_reports = function(start_date = Sys.Date() - 1,
                        end_date = Sys.Date() - 1,
-                       verbose = FALSE,
-                       repository = COVID19_repository_dayli) {
+                       ...) {
   assertthat::assert_that(
     is.date(as.Date(start_date)),
     is.date(as.Date(end_date)),
     end_date >= start_date
   )
   date_seq(start_date, end_date) %>%
-    purrr::map_dfr(~get_daily_report(.))
+    purrr::map_dfr(~get_daily_report(., ...))
 }
